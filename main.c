@@ -15,7 +15,7 @@
 
 
 // Function for reading data
-void makeNumList(int size, int* num_list) {
+void makeNumList(const int size, int* num_list) {
     FILE *f = fopen(INPUT, "r");
 
     // A função vai adicionando os caracteres dos números a uma string
@@ -24,7 +24,7 @@ void makeNumList(int size, int* num_list) {
     // O trabalho cita blocos(mais de uma lista em um arquivo?)
     // , mas não foi considerado isso nessa função
     if (f == NULL) {
-        printf("[ERRO] arquivo vazio, saindo.\n");
+        printf("[ERRO] Não foi possível abrir o arquivo, saindo.\n");
         return;
     }
 
@@ -63,7 +63,13 @@ void makeNumList(int size, int* num_list) {
     fclose(f);
 }
 // Sorting
-void insertionSort(int input[], int n) {
+void insertionSort(int input[], const int n) {
+    if (n == 0){return;}
+    if (input == NULL)
+    {
+        printf("[ERRO] Lista inválida.\n");
+        return;
+    }
     for (int i = 0; i < n; i++)
     {
         int key = input[i];
@@ -78,24 +84,60 @@ void insertionSort(int input[], int n) {
     }
 }
 
-void printIntList(int list[], int size){
+
+void printIntList(int list[], const int size){
+    if (list == NULL)
+    {
+        printf("[ERRO] Lista vazia ou inválida.\n");
+        return;
+    }
     for(int i = 0; i < size; i++) {
         printf("%d", list[i]);
         printf(" ");
     }
 }
+
+void intListOrderToFile(int list[], const int size)
+{
+    FILE *f = fopen(OUTPUT, "w");
+    if (f == NULL)
+    {
+        printf("[ERRO] Não foi possível abrir o arquivo, saindo.\n");
+        return;
+    }
+    if (list == NULL)
+    {
+        printf("Lista vazia, saindo. \n");
+        return;
+    }
+    for (int i = 0; i < size; i++)
+    {
+        fprintf(f, "%d;", list[i]);
+    }
+    printf("LISTA ORGANIZADA:\n");
+    printIntList(list, size);
+    printf("- Disponível em %s\n", OUTPUT);
+    // A lista no arquivo sai da mesma forma que foi lida, com ponto e vírgula
+
+}
+
 int main () {
-    // I'm inputting 15 numbers
+    // Estou colocando 15 números
     int data_amount;
     printf("Insira a quantidade de elementos:\n");
-    scanf("%d", &data_amount);
+    if (scanf("%d", &data_amount) != 1 || data_amount <= 0){
+        printf("[ERRO] Entrada inválida\n");
+        return 0;
+    };
     int* list = malloc(data_amount * sizeof(int));
     makeNumList(data_amount, list);
 
     printf("LISTA ORIGINAL:\n");
     printIntList(list, data_amount);
+    insertionSort(list, data_amount);
+    // Insere a lista em um arquivo, numeros separados via ";"
+    intListOrderToFile(list, data_amount);
     free(list);
 
-
-
+    return 0;
 }
