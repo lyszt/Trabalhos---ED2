@@ -10,6 +10,11 @@ Durante a implementação, foram consideradas boas práticas de engenharia de so
 
 ## Comanda
 ``` 
-A ordenação a ser implementada deve ser realizada sobre números inteiros positivos vindos de um arquivo. Os números inteiros serão separados com o caractere `;` (ponto-e-vírgula) não havendo espaço entre os números e ponto-e-vírgula. Os blocos em cada arquivo deverão ser separados por um espaço em branco.
-A única entrada de dados por parte do usuário é a quantidade de elementos a serem carregados por vez em memória (M). O arquivo contendo os números inteiros que serão ordenados deve se chamar obrigatoriamente dados.txt. e o arquivo resultante contendo os números já ordenados deve ter seu nome impresso em tela. 
+A ordenação a ser implementada deve ser realizada sobre números inteiros positivos 
+vindos de um arquivo. Os números inteiros serão separados com o caractere `;` 
+(ponto-e-vírgula) não havendo espaço entre os números e ponto-e-vírgula. Os blocos em cada 
+arquivo deverão ser separados por um espaço em branco. A única entrada de dados por parte
+do usuário é a quantidade de elementos a serem carregados por vez em memória (M). O arquivo 
+contendo os números inteiros que serão ordenados deve se chamar obrigatoriamente dados.txt 
+e o arquivo resultante contendo os números já ordenados deve ter seu nome impresso em tela. 
 ```
