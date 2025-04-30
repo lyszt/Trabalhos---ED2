@@ -130,6 +130,11 @@ int main () {
         return 0;
     };
     int* list = malloc(data_amount * sizeof(int));
+    if (list == NULL)
+    {
+        printf("[ERRO] Falha ao alocar memória.\n");
+        return 1;
+    }
     makeNumList(data_amount, list);
 
     printf("LISTA ORIGINAL:\n");
