@@ -1,13 +1,20 @@
+#ifdef _WIN32
+#define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\dados.txt"
+#endif
+#ifdef linux
+#define INPUT "dados.txt"
+#endif
 #include <ctype.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-// Tive que deixar o caminho absoluto por conta do Windows
-#define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\dados.txt"
 #define OUTPUT "saida.txt"
 
+
+
+// Function for reading data
 void makeNumList(int size, int* num_list) {
     FILE *f = fopen(INPUT, "r");
 
@@ -55,9 +62,30 @@ void makeNumList(int size, int* num_list) {
 
     fclose(f);
 }
+// Sorting
+void insertionSort(int input[], int n) {
+    for (int i = 0; i < n; i++)
+    {
+        int key = input[i];
+        int j = i - 1;
 
+        while ( j >= 0 && input[j] > key )
+        {
+            input[j + 1 ] = input[j];
+            j = j - 1;
+        }
+        input[j + 1] = key;
+    }
+}
 
+void printIntList(int list[], int size){
+    for(int i = 0; i < size; i++) {
+        printf("%d", list[i]);
+        printf(" ");
+    }
+}
 int main () {
+    // I'm inputting 15 numbers
     int data_amount;
     printf("Insira a quantidade de elementos:\n");
     scanf("%d", &data_amount);
@@ -65,10 +93,7 @@ int main () {
     makeNumList(data_amount, list);
 
     printf("LISTA ORIGINAL:\n");
-    for(int i = 0; i < data_amount; i++) {
-        printf("%d", list[i]);
-        printf(" ");
-    }
+    printIntList(list, data_amount);
     free(list);
 
 
