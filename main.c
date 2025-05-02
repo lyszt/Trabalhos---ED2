@@ -47,6 +47,10 @@ void mergeSortedChunks(FILE *output) {
         if (size >= capacity) {
             capacity = (capacity == 0) ? 1 : capacity * 2;
             values = realloc(values, capacity * sizeof(int));
+            if(values == NULL) {
+                printf("Erro na alocação");
+                return;
+            }
         }
         values[size++] = atoi(num_str);
     }
