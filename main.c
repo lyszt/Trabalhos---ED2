@@ -99,7 +99,7 @@ void externalSort(int chunk_size) {
 
     int count = 0;
     char num_str[16];
-
+    // Esse fscanf ignora os ;
     while (fscanf(f, "%15[0-9];", num_str) == 1) {
         numbers[count++] = atoi(num_str);
         if (count == chunk_size) {
