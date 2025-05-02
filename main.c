@@ -32,6 +32,7 @@ void cloneFile(const char* origin, const char* destination) {
 }
 
 void mergeSortedChunks(FILE *output) {
+    // Feito no processo final
     FILE *temp = fopen("temp.txt", "r");
     if (!temp) {
         printf("[ERRO] Arquivo temporário não encontrado.\n");
@@ -42,7 +43,6 @@ void mergeSortedChunks(FILE *output) {
     int size = 0, capacity = 0;
     char num_str[16];
 
-    // Read all values from temp file
     while (fscanf(temp, "%15[0-9];", num_str) == 1) {
         if (size >= capacity) {
             capacity = (capacity == 0) ? 1 : capacity * 2;
@@ -52,7 +52,6 @@ void mergeSortedChunks(FILE *output) {
     }
     fclose(temp);
 
-    // Sort all values (this is a simplified in-memory merge)
     for (int i = 0; i < size - 1; i++) {
         for (int j = i + 1; j < size; j++) {
             if (values[i] > values[j]) {
@@ -63,7 +62,7 @@ void mergeSortedChunks(FILE *output) {
         }
     }
 
-    // Write sorted values back to the output file
+    // Escreve os arquivos de volta pra OUTPUT
     for (int i = 0; i < size; i++) {
         fprintf(output, "%d;", values[i]);
     }
