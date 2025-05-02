@@ -1,148 +1,142 @@
 #ifdef _WIN32
+// Configurado para o meu computador, alterar se for usar no Windows
 #define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\dados.txt"
+#define PROCESS "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\processo.txt"
+#define OUTPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\saida.txt"
 #endif
 #ifdef linux
 #define INPUT "dados.txt"
+#define PROCESS "processo.txt"
+#define OUTPUT "saida.txt"
 #endif
-#include <ctype.h>
+
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define OUTPUT "saida.txt"
+#define MAX_NUM_LENGTH 16
 
-
-
-// Function for reading data
-void makeNumList(const int size, int* num_list) {
-    FILE *f = fopen(INPUT, "r");
-
-    // A função vai adicionando os caracteres dos números a uma string
-    // até encontrar um caracter vazio, ponto e vírgula, ou o fim do arquivo
-
-    // O trabalho cita blocos(mais de uma lista em um arquivo?)
-    // , mas não foi considerado isso nessa função
+void cloneFile(const char* origin, const char* destination) {
+    FILE *f = fopen(origin, "r");
+    FILE *clone = fopen(destination, "w");
     if (f == NULL) {
-        printf("[ERRO] Não foi possível abrir o arquivo, saindo.\n");
+        printf("[ERRO] Não foi possível ler o arquivo.");
         return;
     }
-
-    int i = 0;
-    int j = 0;
-    char number[16];
-    char c;
-
-    while ((c = fgetc(f)) != EOF) {
-        if (c == ' ') {
-            if (i > 0) {
-                number[i] = '\0';
-                num_list[j++] = strtol(number, NULL, 10);
-                i = 0;
-            }
-            break;
-        }
-        if (c == ';' || i == 16) {
-            number[i] = '\0';
-            num_list[j++] = strtol(number, NULL, 10);
-            i = 0;
-        } else {
-            number[i++] = c;
-        }
-
-        if (j >= size) {
-            break;
-        }
-    }
-
-    if (i > 0 && j < size) {
-        number[i] = '\0';
-        num_list[j++] = strtol(number, NULL, 10);
+    char content[1024];
+    while (fgets(content, sizeof(content), f) != NULL) {
+        fputs(content, clone);
     }
 
     fclose(f);
+    fclose(clone);
 }
-// Sorting
-void insertionSort(int input[], const int n) {
-    if (n == 0){return;}
-    if (input == NULL)
-    {
-        printf("[ERRO] Lista inválida.\n");
+
+void externalSort(int chunk_size) {
+    FILE *f = fopen(PROCESS, "r+");
+    if (f == NULL) {
+        printf("[ERRO] Não foi possível abrir o arquivo.\n");
         return;
     }
-    for (int i = 0; i < n; i++)
-    {
-        int key = input[i];
-        int j = i - 1;
 
-        while ( j >= 0 && input[j] > key )
-        {
-            input[j + 1 ] = input[j];
-            j = j - 1;
+    char num_str[MAX_NUM_LENGTH];
+    int *numbers = (int *)malloc(chunk_size * sizeof(int));
+    if (numbers == NULL) {
+        printf("[ERRO] Não foi possível alocar memória.\n");
+        fclose(f);
+        return;
+    }
+
+    int count = 0;
+    FILE *temp_file = fopen("temp.txt", "w");
+
+    // Le o arquivo a partir da quantidade dada pelo usuário
+    while (fscanf(f, "%15[0-9];", num_str) == 1) {
+        numbers[count++] = atoi(num_str);
+
+        if (count == chunk_size) {
+
+            for (int i = 0; i < count - 1; i++) {
+                for (int j = i + 1; j < count; j++) {
+                    if (numbers[i] > numbers[j]) {
+                        int aux = numbers[i];
+                        numbers[i] = numbers[j];
+                        numbers[j] = aux;
+                    }
+                }
+            }
+            if (temp_file == NULL) {
+                printf("[ERRO] Não foi possível criar arquivo temporário.\n");
+                fclose(f);
+                free(numbers);
+                return;
+            }
+            for (int i = 0; i < count; i++) {
+                fprintf(temp_file, "%d;", numbers[i]);
+            }
+            fclose(temp_file);
+            count = 0; // Reset for the next chunk
         }
-        input[j + 1] = key;
     }
-}
 
+    if (count > 0) {
+        for (int i = 0; i < count - 1; i++) {
+            for (int j = i + 1; j < count; j++) {
+                if (numbers[i] > numbers[j]) {
+                    int temp = numbers[i];
+                    numbers[i] = numbers[j];
+                    numbers[j] = temp;
+                }
+            }
+        }
+        temp_file = fopen("temp.txt", "w");
+        if (temp_file == NULL) {
+            printf("[ERRO] Não foi possível criar arquivo temporário.\n");
+            fclose(f);
+            free(numbers);
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            fprintf(temp_file, "%d;", numbers[i]);
+        }
+        fclose(temp_file);
+    }
 
-void printIntList(int list[], const int size){
-    if (list == NULL)
-    {
-        printf("[ERRO] Lista vazia ou inválida.\n");
+    fseek(f, 0, SEEK_SET);
+    temp_file = fopen("temp.txt", "r");
+    if (temp_file == NULL) {
+        printf("[ERRO] Não foi possível abrir arquivo temporário para mesclar.\n");
+        fclose(f);
+        free(numbers);
         return;
     }
-    for(int i = 0; i < size; i++) {
-        printf("%d", list[i]);
-        printf(" ");
+    // Colocando de volta no arquivo
+    char c;
+    while ((c = fgetc(temp_file)) != EOF) {
+        fputc(c, f);
     }
+
+    fclose(f);
+    fclose(temp_file);
+    free(numbers);
 }
 
-void intListOrderToFile(int list[], const int size)
-{
-    FILE *f = fopen(OUTPUT, "w");
-    if (f == NULL)
-    {
-        printf("[ERRO] Não foi possível abrir o arquivo, saindo.\n");
-        return;
-    }
-    if (list == NULL)
-    {
-        printf("Lista vazia, saindo. \n");
-        return;
-    }
-    for (int i = 0; i < size; i++)
-    {
-        fprintf(f, "%d;", list[i]);
-    }
-    printf("LISTA ORGANIZADA:\n");
-    printIntList(list, size);
-    printf("- Disponível em %s\n", OUTPUT);
-    // A lista no arquivo sai da mesma forma que foi lida, com ponto e vírgula
-
-}
-
-int main () {
-    // Estou colocando 15 números
-    int data_amount;
-    printf("Insira a quantidade de elementos:\n");
-    if (scanf("%d", &data_amount) != 1 || data_amount <= 0){
+int main() {
+    int quantidade_dados;
+    printf("Quantidade de elementos por vez:\n");
+    if (scanf("%d", &quantidade_dados) != 1 || quantidade_dados <= 0) {
         printf("[ERRO] Entrada inválida\n");
         return 0;
-    };
-    int* list = malloc(data_amount * sizeof(int));
-    if (list == NULL)
-    {
-        printf("[ERRO] Falha ao alocar memória.\n");
-        return 1;
     }
-    makeNumList(data_amount, list);
-
-    printf("LISTA ORIGINAL:\n");
-    printIntList(list, data_amount);
-    insertionSort(list, data_amount);
-    // Insere a lista em um arquivo, numeros separados via ";"
-    intListOrderToFile(list, data_amount);
-    free(list);
+    // Clona o arquivo e coloca em processo.txt
+    cloneFile(INPUT, PROCESS);
+    // Usa ordenação externa para ordenar o arquivo
+    // Usar 100
+    externalSort(quantidade_dados);
+    cloneFile(PROCESS, OUTPUT);
+    // Apaga o arquivo que usamos para ordenar
+    remove(PROCESS);
+    printf("Saída final disponível em [ SAIDA.TXT ]");
 
     return 0;
 }
