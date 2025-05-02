@@ -3,8 +3,7 @@
 #define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\dados.txt"
 #define PROCESS "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\processo.txt"
 #define OUTPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\saida.txt"
-#endif
-#ifdef linux
+#else
 #define INPUT "dados.txt"
 #define PROCESS "processo.txt"
 #define OUTPUT "saida.txt"
@@ -14,111 +13,142 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_NUM_LENGTH 16
 
 void cloneFile(const char* origin, const char* destination) {
     FILE *f = fopen(origin, "r");
     FILE *clone = fopen(destination, "w");
-    if (f == NULL) {
-        printf("[ERRO] Não foi possível ler o arquivo.");
+    if (f == NULL || clone == NULL) {
+        printf("[ERRO] Não foi possível abrir os arquivos para clonagem.\n");
+        if (f) fclose(f);
+        if (clone) fclose(clone);
         return;
     }
     char content[1024];
-    while (fgets(content, sizeof(content), f) != NULL) {
+    while (fgets(content, sizeof(content), f)) {
         fputs(content, clone);
     }
-
     fclose(f);
     fclose(clone);
 }
 
-void externalSort(int chunk_size) {
-    FILE *f = fopen(PROCESS, "r+");
-    if (f == NULL) {
-        printf("[ERRO] Não foi possível abrir o arquivo.\n");
+void mergeSortedChunks(FILE *output) {
+    FILE *temp = fopen("temp.txt", "r");
+    if (!temp) {
+        printf("[ERRO] Arquivo temporário não encontrado.\n");
         return;
     }
 
-    char num_str[MAX_NUM_LENGTH];
-    int *numbers = (int *)malloc(chunk_size * sizeof(int));
-    if (numbers == NULL) {
-        printf("[ERRO] Não foi possível alocar memória.\n");
+    int *values = NULL;
+    int size = 0, capacity = 0;
+    char num_str[16];
+
+    // Read all values from temp file
+    while (fscanf(temp, "%15[0-9];", num_str) == 1) {
+        if (size >= capacity) {
+            capacity = (capacity == 0) ? 1 : capacity * 2;
+            values = realloc(values, capacity * sizeof(int));
+        }
+        values[size++] = atoi(num_str);
+    }
+    fclose(temp);
+
+    // Sort all values (this is a simplified in-memory merge)
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = i + 1; j < size; j++) {
+            if (values[i] > values[j]) {
+                int temp = values[i];
+                values[i] = values[j];
+                values[j] = temp;
+            }
+        }
+    }
+
+    // Write sorted values back to the output file
+    for (int i = 0; i < size; i++) {
+        fprintf(output, "%d;", values[i]);
+    }
+
+    free(values);
+}
+
+void externalSort(int chunk_size) {
+    FILE *f = fopen(PROCESS, "r");
+    if (!f) {
+        printf("[ERRO] Arquivo não encontrado.\n");
+        return;
+    }
+
+    int *numbers = malloc(chunk_size * sizeof(int));
+    if (!numbers) {
+        printf("[ERRO] Falha na alocação de memória.\n");
         fclose(f);
         return;
     }
 
-    int count = 0;
-    FILE *temp_file = fopen("temp.txt", "w");
-
-    // Le o arquivo a partir da quantidade dada pelo usuário
-    while (fscanf(f, "%15[0-9];", num_str) == 1) {
-        numbers[count++] = atoi(num_str);
-
-        if (count == chunk_size) {
-
-            for (int i = 0; i < count - 1; i++) {
-                for (int j = i + 1; j < count; j++) {
-                    if (numbers[i] > numbers[j]) {
-                        int aux = numbers[i];
-                        numbers[i] = numbers[j];
-                        numbers[j] = aux;
-                    }
-                }
-            }
-            if (temp_file == NULL) {
-                printf("[ERRO] Não foi possível criar arquivo temporário.\n");
-                fclose(f);
-                free(numbers);
-                return;
-            }
-            for (int i = 0; i < count; i++) {
-                fprintf(temp_file, "%d;", numbers[i]);
-            }
-            fclose(temp_file);
-            count = 0; // Reset for the next chunk
-        }
-    }
-
-    if (count > 0) {
-        for (int i = 0; i < count - 1; i++) {
-            for (int j = i + 1; j < count; j++) {
-                if (numbers[i] > numbers[j]) {
-                    int temp = numbers[i];
-                    numbers[i] = numbers[j];
-                    numbers[j] = temp;
-                }
-            }
-        }
-        temp_file = fopen("temp.txt", "w");
-        if (temp_file == NULL) {
-            printf("[ERRO] Não foi possível criar arquivo temporário.\n");
-            fclose(f);
-            free(numbers);
-            return;
-        }
-        for (int i = 0; i < count; i++) {
-            fprintf(temp_file, "%d;", numbers[i]);
-        }
-        fclose(temp_file);
-    }
-
-    fseek(f, 0, SEEK_SET);
-    temp_file = fopen("temp.txt", "r");
-    if (temp_file == NULL) {
-        printf("[ERRO] Não foi possível abrir arquivo temporário para mesclar.\n");
+    FILE *temp = fopen("temp.txt", "w");
+    if (!temp) {
+        printf("[ERRO] Não foi possível criar temp.txt.\n");
         fclose(f);
         free(numbers);
         return;
     }
-    // Colocando de volta no arquivo
-    char c;
-    while ((c = fgetc(temp_file)) != EOF) {
-        fputc(c, f);
+    fclose(temp);
+
+    int count = 0;
+    char num_str[16];
+
+    while (fscanf(f, "%15[0-9];", num_str) == 1) {
+        numbers[count++] = atoi(num_str);
+        if (count == chunk_size) {
+            for (int i = 0; i < count - 1; i++) {
+                for (int j = i + 1; j < count; j++) {
+                    if (numbers[i] > numbers[j]) {
+                        int tmp = numbers[i];
+                        numbers[i] = numbers[j];
+                        numbers[j] = tmp;
+                    }
+                }
+            }
+            // Manda os dados ordenados para arquivo temp
+            temp = fopen("temp.txt", "a");
+            for (int i = 0; i < count; i++) {
+                fprintf(temp, "%d;", numbers[i]);
+            }
+            fclose(temp);
+            count = 0;
+        }
+    }
+
+    // Números restantes
+    if (count > 0) {
+        for (int i = 0; i < count - 1; i++) {
+            for (int j = i + 1; j < count; j++) {
+                if (numbers[i] > numbers[j]) {
+                    int tmp = numbers[i];
+                    numbers[i] = numbers[j];
+                    numbers[j] = tmp;
+                }
+            }
+        }
+        temp = fopen("temp.txt", "a");
+        for (int i = 0; i < count; i++) {
+            fprintf(temp, "%d;", numbers[i]);
+        }
+        fclose(temp);
     }
 
     fclose(f);
-    fclose(temp_file);
     free(numbers);
+
+    // Fase de merge
+    FILE *output = fopen(PROCESS, "w");
+    if (!output) {
+        printf("[ERRO] Falha ao abrir arquivo de saída.\n");
+        return;
+    }
+    mergeSortedChunks(output);
+    fclose(output);
+    remove("temp.txt");
 }
 
 int main() {
@@ -128,15 +158,12 @@ int main() {
         printf("[ERRO] Entrada inválida\n");
         return 0;
     }
-    // Clona o arquivo e coloca em processo.txt
+
     cloneFile(INPUT, PROCESS);
-    // Usa ordenação externa para ordenar o arquivo
-    // Usar 100
     externalSort(quantidade_dados);
     cloneFile(PROCESS, OUTPUT);
-    // Apaga o arquivo que usamos para ordenar
     remove(PROCESS);
-    printf("Saída final disponível em [ SAIDA.TXT ]");
 
+    printf("Saída final disponível em [ SAIDA.TXT ]\n");
     return 0;
 }
