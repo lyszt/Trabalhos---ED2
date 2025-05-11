@@ -1,3 +1,5 @@
+
+// Configurado para o meu computador, alterar se for usar no Windows
 #ifdef _WIN32
 #define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\dados.txt"
 #endif
