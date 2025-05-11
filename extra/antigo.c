@@ -14,6 +14,12 @@
 
 
 
+struct HeapNode {
+    int num;
+    int i;
+};
+
+
 // Function for reading data
 void makeNumList(const int size, int* num_list) {
     FILE *f = fopen(INPUT, "r");
