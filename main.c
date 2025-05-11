@@ -98,7 +98,13 @@ void externalSort(int chunk_size) {
     FILE *entrada = fopen(INPUT, "r");
     for(int i = 0; i < num_arquivos; i++) {
         // Calcular tamanho do bloco
-        int tamanho = (i == num_arquivos - 1) ? total % chunk_size : chunk_size;
+        int tamanho;
+        if (i == num_arquivos - 1) {
+            tamanho = total % chunk_size;
+        } else {
+            tamanho = chunk_size;
+        }
+
         printf("\n-> Bloco %d/%d (%d elementos)\n", i+1, num_arquivos, tamanho);
 
         // Ler números
