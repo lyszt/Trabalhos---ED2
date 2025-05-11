@@ -39,53 +39,82 @@ void cloneFile(const char* origin, const char* destination) {
 
 int count_numbers_in_file(const char *filename) {
     FILE *file = fopen(filename, "r");
-    if (!file) return -1;
+    if (!file) {
+        printf("[ERRO] Erro abrindo o arquivo.");
+        return -1;
+    }
 
     int count = 0;
     int num;
 
-    // O e 1 são para verificar se o fscanf funcionou
-    while (fscanf(file, "%*[^0-9-]") == 0 || fscanf(file, "%d", &num) == 1) {
-        count++;
+    printf("Iniciando contagem em %s...\n", filename);
+
+    while(1) {
+        // Pula caracteres não numéricos
+        int discarded = fscanf(file, "%*[^0-9]");
+        if(discarded == EOF) break; // Fim do arquivo
+
+        // Tenta ler um número
+        int read = fscanf(file, "%d", &num);
+
+        if(read == 1) {
+            count++;
+        }
+        else {
+            printf("Caractere inválido encontrado. Parando busca.\n");
+            break;
+        }
     }
 
     fclose(file);
+    printf("Total de números encontrados: %d\n\n", count);
     return count;
 }
 
 void externalSort(int chunk_size) {
+    printf("\n=== INICIANDO ORDENACAO EXTERNA ===\n");
+    printf("Tamanho dos blocos: %d elementos\n", chunk_size);
+
     // 1. Verificar quantidade total de números
+    printf("\n[PASSO 1] Contando numeros no arquivo...\n");
     int total = count_numbers_in_file(INPUT);
+    if(total == -1) {
+        printf("Falha contando quantidade de números no arquivo.\n");
+        return;
+    }
     if(total <= 0) {
         printf("Erro ao ler arquivo de entrada\n");
         return;
     }
+    printf("Total de numeros encontrados: %d\n", total);
 
     // 2. Calcular quantos arquivos temporários serão criados
     int num_arquivos = (total + chunk_size - 1) / chunk_size;
+    printf("\n[PASSO 2] Criando %d arquivos temporarios\n", num_arquivos);
     char nome_arquivo[256];
 
     // 3. Ler, ordenar e salvar em arquivos temporários
+    printf("\n[PASSO 3] Processando blocos:\n");
     FILE *entrada = fopen(INPUT, "r");
     for(int i = 0; i < num_arquivos; i++) {
-        // 3.1 Calcular tamanho deste bloco
-        int tamanho;
-        if (i == num_arquivos - 1) {
-            tamanho = total % chunk_size;
-        } else {
-            tamanho = chunk_size;
-        }
+        // Calcular tamanho do bloco
+        int tamanho = (i == num_arquivos - 1) ? total % chunk_size : chunk_size;
+        printf("\n-> Bloco %d/%d (%d elementos)\n", i+1, num_arquivos, tamanho);
 
-        // 3.2 Ler números do arquivo original
+        // Ler números
+        printf("   Lendo do arquivo original...\n");
         int *bloco = malloc(tamanho * sizeof(int));
         for(int j = 0; j < tamanho; j++) {
             fscanf(entrada, "%d", &bloco[j]);
             while(fgetc(entrada) == ';');
         }
 
-        // 3.3 Ordenar e salvar em arquivo temporário
+        // Ordenar e salvar
+        printf("   Ordenando...\n");
         qsort(bloco, tamanho, sizeof(int), compare);
+
         sprintf(nome_arquivo, PROCESS_N, i);
+        printf("   Salvando no arquivo temporario: %s\n", nome_arquivo);
         FILE *temp = fopen(nome_arquivo, "w");
         for(int j = 0; j < tamanho; j++) fprintf(temp, "%d;", bloco[j]);
         fclose(temp);
@@ -94,20 +123,24 @@ void externalSort(int chunk_size) {
     fclose(entrada);
 
     // 4. Fazer merge dos arquivos temporários
+    printf("\n[PASSO 4] Iniciando merge dos arquivos:\n");
     FILE **arquivos = malloc(num_arquivos * sizeof(FILE*));
     int *valores = malloc(num_arquivos * sizeof(int));
 
-    // 4.1 Abrir todos os arquivos e ler primeiro valor
+    // Abrir arquivos temporários
+    printf("Abrindo arquivos para merge...\n");
     for(int i = 0; i < num_arquivos; i++) {
         sprintf(nome_arquivo, PROCESS_N, i);
         arquivos[i] = fopen(nome_arquivo, "r");
         fscanf(arquivos[i], "%d;", &valores[i]);
     }
 
-    // 4.2 Escrever resultado ordenado
+    // Escrever resultado ordenado
+    int elementos_processados = 0;
     FILE *saida = fopen(OUTPUT, "w");
+    printf("\n[PASSO 5] Gerando arquivo final:\n");
     while(1) {
-        // Encontrar menor valor atual
+        // Encontrar menor valor
         int menor_valor = INT_MAX;
         int indice_menor = -1;
 
@@ -118,35 +151,43 @@ void externalSort(int chunk_size) {
             }
         }
 
-        // Se todos valores forem processados
         if(indice_menor == -1) break;
 
         // Escrever e atualizar
         fprintf(saida, "%d;", menor_valor);
+        elementos_processados++;
+
+        if(elementos_processados % 1000 == 0) {
+            printf("-> Progresso: %d elementos ordenados\n", elementos_processados);
+        }
+
         if(fscanf(arquivos[indice_menor], "%d;", &valores[indice_menor]) != 1) {
-            valores[indice_menor] = INT_MAX; // Marcar como finalizado
+            printf("Arquivo %d esvaziado\n", indice_menor);
+            valores[indice_menor] = INT_MAX;
         }
     }
 
     // 5. Limpeza final
+    printf("\n[PASSO 6] Finalizando processo:\n");
     for(int i = 0; i < num_arquivos; i++) {
         fclose(arquivos[i]);
         sprintf(nome_arquivo, PROCESS_N, i);
         remove(nome_arquivo);
+        printf("Removido arquivo temporario: %s\n", nome_arquivo);
     }
     free(arquivos);
     free(valores);
     fclose(saida);
-}
 
+    printf("\n=== PROCESSO CONCLUIDO ===\n");
+    printf("Arquivo final gerado: %s\n", OUTPUT);
+    printf("Total de elementos ordenados: %d\n\n", elementos_processados);
+}
 int main() {
     int quantidade_dados;
     printf("Quantidade de elementos por vez:\n");
-    if (scanf("%d", &quantidade_dados) != 1 || quantidade_dados <= 0) {
-        printf("[ERRO] Entrada inválida\n");
-        return 0;
-    }
-
+    scanf("%d", &quantidade_dados);
+    printf("Pegou os dados. Fazendo external sort...");
     externalSort(quantidade_dados);
 
     printf("Saída final disponível em [ SAIDA.TXT ]\n");
