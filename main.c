@@ -124,6 +124,8 @@ void externalSort(int chunk_size) {
 
     // 4. Fazer merge dos arquivos temporários
     printf("\n[PASSO 4] Iniciando merge dos arquivos:\n");
+    // Ponteiro duplo é um array de arquivos FILE
+    // Isso facilita aqui pra baixo
     FILE **arquivos = malloc(num_arquivos * sizeof(FILE*));
     int *valores = malloc(num_arquivos * sizeof(int));
 
