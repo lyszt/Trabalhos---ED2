@@ -1,7 +1,6 @@
 #ifdef _WIN32
 // Configurado para o meu computador, alterar se for usar no Windows
 #define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\dados.txt"
-#define PROCESS_N "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\processo_%d.txt"
 #define OUTPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\saida.txt"
 #else
 // Mudei o sistema de arquivos, caso não consiga ler o arquivo, por favor mude o caminho aqui
