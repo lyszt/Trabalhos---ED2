@@ -132,6 +132,7 @@ void intListOrderToFile(int list[], const int size)
 
 }
 
+
 int main () {
     // Estou colocando 15 números
     int data_amount;
