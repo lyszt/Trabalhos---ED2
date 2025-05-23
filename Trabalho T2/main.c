@@ -193,7 +193,7 @@ void makeLinearHashTable(int hash_table_size, int data_count, int* number_list){
 
             hash_table[index] = value;
         }
-
+    free(hash_table);
     printLinearHashTable(hash_table, hash_table_size);
 
 }
