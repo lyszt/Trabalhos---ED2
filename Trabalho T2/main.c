@@ -187,9 +187,16 @@ void makeLinearHashTable(int hash_table_size, int data_count, int* number_list){
             int value = number_list[i];
             int index = value % hash_table_size;
 
+            int attempts = 0;
+
             while (hash_table[index] != EMPTY_VALUE) {
                 index = (index + 1) % hash_table_size;
-            }
+                attempts++;
+
+                if (attempts == hash_table_size) {
+                    printf("[ERRO] Tabela hash cheia. Não é possível inserir o valor %d\n", value);
+                    break; // or return; depending on what behavior you want
+                }
 
             hash_table[index] = value;
         }
