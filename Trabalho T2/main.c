@@ -175,38 +175,39 @@ void makeNodeHashTable(int hash_table_size, int data_count, int* number_list)
     free(hash_table);
 }
 
-void makeLinearHashTable(int hash_table_size, int data_count, int* number_list){
-        int* hash_table = (int*)malloc(hash_table_size * sizeof(int));
+void makeLinearHashTable(int hash_table_size, int data_count, int* number_list)
+{
+    int* hash_table = (int*)malloc(hash_table_size * sizeof(int));
     // Valores vazios são declarados como -1, supondo que nenhum dos valores venha a ser negativo
     // Caso isso não seja o caso, define-se no topo da função a global EMPTY_VALUE
-        for (int i = 0; i < hash_table_size; i++) {
-            hash_table[i] = EMPTY_VALUE;
-        }
+    for (int i = 0; i < hash_table_size; i++) {
+        hash_table[i] = EMPTY_VALUE;
+    }
 
-        for (int i = 0; i < data_count; i++) {
-            int value = number_list[i];
-            int index = value % hash_table_size;
+    for (int i = 0; i < data_count; i++) {
+        int value = number_list[i];
+        int index = value % hash_table_size;
 
-            int attempts = 0;
+        int attempts = 0;
 
-            while (hash_table[index] != EMPTY_VALUE) {
-                index = (index + 1) % hash_table_size;
-                attempts++;
+        while (hash_table[index] != EMPTY_VALUE) {
+            index = (index + 1) % hash_table_size;
+            attempts++;
 
-                if (attempts == hash_table_size) {
-                    printf("[ERRO] Tabela hash cheia. Não é possível inserir o valor %d\n", value);
-                    break;
-                }
+            if (attempts == hash_table_size) {
+                printf("[ERRO] Tabela hash cheia. Não é possível inserir o valor %d\n", value);
+                break;
+            }
 
             hash_table[index] = value;
         }
-    free(hash_table);
-    printLinearHashTable(hash_table, hash_table_size);
+        free(hash_table);
+        printLinearHashTable(hash_table, hash_table_size);
 
+    }
 }
 
-int main()
-{
+int main(){
 
     int* number_list;
     int data_count = 0;
