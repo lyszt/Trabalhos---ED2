@@ -209,10 +209,10 @@ int main()
     makeNumList(&hash_table_type, &hash_table_size, &number_list, &data_count);
     switch (hash_table_type)
     {
-        case 1:
+        case 0:
             makeNodeHashTable(hash_table_size, data_count, number_list);
         break;
-        case 2:
+        case 1:
             makeLinearHashTable(hash_table_size, data_count, number_list);
         break;
         default:
