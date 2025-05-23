@@ -5,6 +5,7 @@
 #else
 // Mudei o sistema de arquivos, caso não consiga ler o arquivo, por favor mude o caminho aqui
 #define INPUT "Trabalho T2/dados.txt"
+#define EMPTY_VALUE -1
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,7 @@ typedef struct Node
 
 
 // Function for reading data
-int makeNumList(int *hash_size_ptr, int** num_list_ptr, int *num_count_ptr) {
+int makeNumList(int* hash_table_type, int *hash_size_ptr, int** num_list_ptr, int *num_count_ptr) {
     FILE *f = fopen(INPUT, "r");
 
     // A função vai adicionando os caracteres dos números a uma string
@@ -39,9 +40,18 @@ int makeNumList(int *hash_size_ptr, int** num_list_ptr, int *num_count_ptr) {
     fgetc(f);
     // Limpar o buffer
 
+    char hash_type_string[1000];
+    if (fgets(hash_type_string, sizeof(hash_type_string), f) == NULL) {
+        printf("[ERRO] Erro lendo o arquivo dados.txt\n");
+        fclose(f);
+        return 0;
+    }
+    int hash_type = strtol(hash_type_string, NULL, 10);
+    fgetc(f);
+
     char number_line[1000];
     if (fgets(number_line, sizeof(number_line), f) == NULL) {
-        printf("[ERRO] Erro lendo o arquivo dados.txt");
+        printf("[ERRO] Erro lendo o arquivo dados.txt\n");
         fclose(f);
         return 0;
     }
@@ -56,7 +66,7 @@ int makeNumList(int *hash_size_ptr, int** num_list_ptr, int *num_count_ptr) {
     int* num_list = malloc(count * sizeof(int));
     if (num_list == NULL)
     {
-        printf("[ERRO] Erro lendo o arquivo dados.txt");
+        printf("[ERRO] Erro lendo o arquivo dados.txt\n");
         fclose(f);
         return -1;
     }
@@ -81,15 +91,27 @@ int makeNumList(int *hash_size_ptr, int** num_list_ptr, int *num_count_ptr) {
     }
 
     // Retorna o endereço pro tamanho da hash_table e a lista de numeros pro input da função
-   *hash_size_ptr = hash_list_size;
+    *hash_size_ptr = hash_list_size;
     *num_count_ptr = count;
     *num_list_ptr = num_list;
+    *hash_table_type = hash_type;
 
     return 0;
 }
 
 
-void printHashTable(Node** table, int size) {
+
+void printLinearHashTable(int* hash_table, int size) {
+    for (int i = 0; i < size; i++) {
+        if (hash_table[i] == EMPTY_VALUE) {
+            printf("Index [%d]: NULL\n", i);
+        } else {
+            printf("Index [%d]: %d\n", i, hash_table[i]);
+        }
+    }
+}
+
+void printNodeHashTable(Node** table, int size) {
     for (int i = 0; i < size; i++) {
         printf("Index %d:", i);
         Node* current = table[i];
@@ -111,15 +133,8 @@ int findInHashTable(int num, Node** hash_table, int hash_size)
     return target_index;
 }
 
-
-int main()
+void makeNodeHashTable(int hash_table_size, int data_count, int* number_list)
 {
-    int* number_list;
-    int data_count = 0;
-    int hash_table_size = 0;
-    // A função manda os valores direto pro endereço das variáveis declaradas acima
-    makeNumList(&hash_table_size, &number_list, &data_count);
-
     // Forma supostamente mais segura de alocar um array de pointers pra uma struct, inicializa todos os pointers pra null
     Node** hash_table = (Node**)calloc(hash_table_size, sizeof(Node*));
     for (int i = 1; i < data_count; i++)
@@ -145,8 +160,9 @@ int main()
         }
 
     }
-    printHashTable(hash_table, hash_table_size);
+    printNodeHashTable(hash_table, hash_table_size);
     // Função usada pra achar números
+    // Eu não dou escolha aqui ao usuário de escolher o que está procurando, já que o trabalho não especificava
     int number_index_if_exists = findInHashTable(97, hash_table, hash_table_size);
     if (number_index_if_exists == -1)
     {
@@ -157,5 +173,53 @@ int main()
         printf("O número procurado e indicado na função está no índice %d\n",number_index_if_exists);
     }
     free(hash_table);
+}
+
+void makeLinearHashTable(int hash_table_size, int data_count, int* number_list){
+        int* hash_table = (int*)malloc(hash_table_size * sizeof(int));
+    // Valores vazios são declarados como -1, supondo que nenhum dos valores venha a ser negativo
+    // Caso isso não seja o caso, define-se no topo da função a global EMPTY_VALUE
+        for (int i = 0; i < hash_table_size; i++) {
+            hash_table[i] = EMPTY_VALUE;
+        }
+
+        for (int i = 0; i < data_count; i++) {
+            int value = number_list[i];
+            int index = value % hash_table_size;
+
+            while (hash_table[index] != EMPTY_VALUE) {
+                index = (index + 1) % hash_table_size;
+            }
+
+            hash_table[index] = value;
+        }
+
+    printLinearHashTable(hash_table, hash_table_size);
+
+}
+
+int main()
+{
+
+    int* number_list;
+    int data_count = 0;
+    int hash_table_size = 0;
+    int hash_table_type;
+    // A função manda os valores direto pro endereço das variáveis declaradas acima
+    makeNumList(&hash_table_type, &hash_table_size, &number_list, &data_count);
+    switch (hash_table_type)
+    {
+        case 1:
+            makeNodeHashTable(hash_table_size, data_count, number_list);
+        break;
+        case 2:
+            makeLinearHashTable(hash_table_size, data_count, number_list);
+        break;
+        default:
+            printf("Por favor insira um tipo de tabela hash válido (entre 1 e 2).\n");
+
+    }
+
+
     return 0;
 }
