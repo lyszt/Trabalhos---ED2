@@ -104,9 +104,9 @@ int makeNumList(int* hash_table_type, int *hash_size_ptr, int** num_list_ptr, in
 void printLinearHashTable(int* hash_table, int size) {
     for (int i = 0; i < size; i++) {
         if (hash_table[i] == EMPTY_VALUE) {
-            printf("Index [%d]: NULL\n", i);
+            printf("Index %d: NULL\n", i);
         } else {
-            printf("Index [%d]: %d\n", i, hash_table[i]);
+            printf("Index %d: %d\n", i, hash_table[i]);
         }
     }
 }
