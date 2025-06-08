@@ -6,4 +6,5 @@ set(CMAKE_C_STANDARD 11)
 include_directories(.)
 
 add_executable(Trabalho___POD
-        main.c)
+        "Trabalho T1/main.c"
+        "Trabalho T1/main.c")
