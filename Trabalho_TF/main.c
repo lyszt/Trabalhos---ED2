@@ -1,7 +1,7 @@
 #define degree 4
 #ifdef _WIN32
 // Configurado para o meu computador, alterar se for usar no Windows
-#define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\Trabalho T3\\dados.txt"
+#define INPUT "C:\\Users\\neoka\\CLionProjects\\Trabalho---POD\\Trabalho_TF\\dados.txt"
 #else
 #define INPUT "dados.txt"
 #endif
@@ -14,10 +14,18 @@
 typedef struct Node
 {
     int value;
-    struct Node *next;
+    struct Node *right;
+    struct Node *left;
 } Node;
 
+struct Node* makeNode(int input){
+    Node* node = (Node*)malloc(sizeof(Node));
+    node->value = input;
 
+    node->right = NULL;
+    node->left = NULL;
+    return node;
+}
 
 // Function for reading data
 int makeNumList(int** num_list_ptr, int *num_count_ptr) {
