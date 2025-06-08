@@ -8,6 +8,7 @@
 #define PROCESS_N "processo_%d.txt"
 #define OUTPUT    "saida.txt"
 #endif
+#define INT_MAX
 
 #include <stdbool.h>
 #include <stdio.h>
