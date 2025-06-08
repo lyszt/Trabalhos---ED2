@@ -13,18 +13,51 @@
 // Estrutura necessária pra fazer a árvore b+
 typedef struct Node
 {
-    int value;
+    // Nessa struct o valor é uma lista
+    int* value;
     struct Node *right;
     struct Node *left;
 } Node;
 
-struct Node* makeNode(int input){
+
+struct Node* makeNode(int* input){
     Node* node = (Node*)malloc(sizeof(Node));
     node->value = input;
-
+    // estrutura de dados onde cada nodo tem uma lista de m - 1 items 
+    // Já se espera que a quantidade seja certa, não há verificações
     node->right = NULL;
     node->left = NULL;
     return node;
+}
+
+void buildNodeFromList(Node* root, int* num_list, int num_count){
+    // Primeiro, alocar uma lista com o tamanho dos degraus
+    int * chunk_list;
+    for(int i = 0; i < num_count; i += degree){
+        // Depois que aloca M-1, cria novo chunk_list pra numeros novos
+        int* chunk_list = malloc(degree * sizeof(int));
+        for(int j = 0; j < degree; j++){
+            // Lista de M-1
+            if (i + j < num_count) {
+                // i + j, atual + indice lista
+                chunk_list[j] = num_list[i + j];
+            }
+        }
+         // Terminando, coloca a arvore no root
+        if(root->left == root->right == NULL && root->value == NULL) {
+            Node* node = makeNode(chunk_list);
+            if(node == NULL){
+                printf("[ ERRO ] Erro na alocação de memória.");
+                return;
+            }
+            *root = *node;
+            // Na nossa situação atual, mesmo que foi criado um root na main,
+            // Ela vai sobrescrever com os valores m-1 
+        }
+    } // n²
+    free(chunk_list);
+    // Existe a possibilidade de dar free em uma memória nunca alocada aqui?
+    
 }
 
 // Function for reading data
@@ -109,3 +142,6 @@ int main(){
       printf("%d\n", num_list[i]);
     }
 }
+
+// Personal notes
+// I wonder if we can't just put lists of degrees inside the nodes 
