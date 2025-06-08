@@ -16,6 +16,7 @@ SRCS3 = Trabalho_T3/main.c
 .PHONY: all
 all: $(TARGET1) $(TARGET2) $(TARGET3)
 
+
 $(TARGET1): $(SRCS1)
 	$(CC) $(CFLAGS) -o $@ $^
 
