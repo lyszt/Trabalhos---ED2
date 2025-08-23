@@ -1,0 +1,5 @@
+ 0 Pedro 5.5 1
+ 1 Carlos 4.5 1
+ 2 Ronaldo 3.0 1
+ 3 Rodolfo 1.0 1
+ 4 Miau 2.0 0
