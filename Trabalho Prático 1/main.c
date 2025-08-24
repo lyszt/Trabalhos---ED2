@@ -46,15 +46,6 @@ void criarListaDeAlunos(Aluno* lista_alunos, int quantidade_alunos) {
 
 }
 
-Aluno* getAluno(FILE *f, int id){
-    rewind(f);
-    Aluno* aluno = malloc(sizeof(Aluno));
-    if(fread(aluno, sizeof(Aluno), 1, f) != 1){
-        free(aluno);
-        return NULL;
-    }
-    return aluno;
-}
 
 
 void ListAlunos(FILE *f, int id, int opts){
@@ -78,6 +69,7 @@ void ListAlunos(FILE *f, int id, int opts){
 void atualizarMedia(FILE *f, int id, float media){
     rewind(f);
     Aluno* aluno = malloc(sizeof(Aluno));
+    int found = 0;
     while (fread(aluno, sizeof(Aluno), 1, f) == 1) {
         if (aluno->id != id)
             continue;
@@ -85,8 +77,10 @@ void atualizarMedia(FILE *f, int id, float media){
         aluno->media = media;
         fwrite(aluno, sizeof(Aluno), 1, f);
         printf("Média de %s atualizada.\n", aluno->nome);
+        found = 1;
         break;
     }
+    if(!found){printf("Este aluno não existe.\n");}
     free(aluno);
 }
 
@@ -94,6 +88,7 @@ void atualizarMedia(FILE *f, int id, float media){
 void apagarAluno(FILE *f, int id){
     rewind(f);
     Aluno* aluno = malloc(sizeof(Aluno));
+    int found = 0;
     while (fread(aluno, sizeof(Aluno), 1, f) == 1) {
         if (aluno->id != id)
             continue;
@@ -101,8 +96,10 @@ void apagarAluno(FILE *f, int id){
         aluno->ativo = 0;
         fwrite(aluno, sizeof(Aluno), 1, f);
         printf("Aluno %s foi marcado como inativo/apagado.\n", aluno->nome);
+        found = 1;
         break;
     }
+    if(!found){printf("Este aluno não existe.\n");}
     free(aluno);
 }
 
@@ -157,8 +154,12 @@ int main(){
     int status[] = {1,1,1,1,0};
     int quantidade_alunos = 5;
     Aluno alunos[5];
-    for(int i = 0; i < quantidade_alunos; i++){
-        Aluno current = {i, nomes[i], medias[i], status[i]};
+        for(int i = 0; i < quantidade_alunos; i++){
+        Aluno current;
+        current.id = i;
+        strcpy(current.nome, nomes[i]); 
+        current.media = medias[i];
+        current.ativo = status[i];
         alunos[i] = current;
     }
 
